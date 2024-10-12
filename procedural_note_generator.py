@@ -1,9 +1,10 @@
 import streamlit as st
+import openai
 import re
 
 # Check if openai is installed
 try:
-    from openai import OpenAI
+    import openai
     openai_installed = True
 except ImportError:
     openai_installed = False
@@ -33,41 +34,46 @@ def generate_procedural_note(subjective, objective):
     if not api_key:
         return "Error: Please enter a valid OpenAI API key to use this feature."
 
-    client = OpenAI(api_key=api_key)
-    prompt = f"""Generate a comprehensive procedural note based on the following information:
+    openai.api_key = api_key
+
+    prompt = f"""Generate a detailed procedural note based on the following patient information:
 
 Subjective: {subjective}
 
 Objective: {objective}
 
 Please provide the following sections:
-1. Assessment:
+1. **Diagnosis**:
    - Primary diagnosis
-   - Differential diagnoses (list at least 3)
-2. Plan:
-   - Diagnostic tests or procedures
-   - Treatments:
-     a) Non-pharmacological interventions
-     b) Pharmacological interventions (include specific prescriptions with dosage and frequency)
-   - Patient education and counseling
+   - At least three differential diagnoses
+2. **Procedural Details**:
+   - Description of the procedure performed
+   - Any intraoperative findings
+   - Anesthesia used (if applicable)
+3. **Post-Procedure Plan**:
+   - Post-operative care instructions
+   - Non-pharmacological interventions
+   - Pharmacological prescriptions with dosages and frequency
    - Follow-up recommendations
+4. **Patient Education**:
+   - Important instructions and guidance for recovery and care
 
-Ensure the note is detailed, professional, and follows standard medical terminology and format."""
+Ensure that the note is comprehensive, professional, and formatted using appropriate medical terminology."""
 
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are an experienced dentist generating comprehensive procedural notes, including patient's clinical history and post-procedural instructions, including medications and dosages."},
+                {"role": "system", "content": "You are a medical professional tasked with generating detailed procedural notes for healthcare professionals."},
                 {"role": "user", "content": prompt}
             ]
         )
-        return response.choices[0].message.content.strip()
+        return response['choices'][0]['message']['content'].strip()
     except Exception as e:
         return f"Error: {str(e)}"
 
 # Streamlit app
-st.title('Enhanced AI Procedural Note Generator')
+st.title('AI-Powered Procedural Note Generator')
 
 if not openai_installed:
     st.warning("The OpenAI library is not installed. Some features of this app may not work.")
@@ -91,11 +97,17 @@ if st.button('Extract Subjective and Objective'):
     else:
         st.warning('Please paste a conversation before extracting.')
 
-# Subjective and Objective inputs
-st.subheader('Subjective')
+# Subjective and Objective inputs with explanations
+st.subheader('Subjective (Patient-reported Information)')
+st.text("This section contains the patient's personal experiences, symptoms, and concerns. \
+It includes information provided by the patient about their health, pain levels, history, and any other \
+subjective details that may not be observable by the healthcare provider.")
 subjective = st.text_area("Subjective information:", value=st.session_state.get('subjective', ''), height=100)
 
-st.subheader('Objective')
+st.subheader('Objective (Clinically Observed Information)')
+st.text("This section contains the observable, measurable facts collected during the clinical examination. \
+It includes test results, vital signs, physical examination findings, and any other data gathered by the healthcare provider \
+during the consultation or procedure.")
 objective = st.text_area("Objective information:", value=st.session_state.get('objective', ''), height=100)
 
 # Generate button
@@ -104,21 +116,19 @@ if st.button('Generate Enhanced Procedural Note'):
         if api_key:
             with st.spinner('Generating Enhanced Procedural Note...'):
                 procedural_note = generate_procedural_note(subjective, objective)
-            st.subheader('Generated Enhanced Procedural Note')
+            st.subheader('Generated Procedural Note')
             st.text_area("", value=procedural_note, height=500)
         else:
-            st.warning('Please enter your OpenAI API key to generate the Procedural note.')
+            st.warning('Please enter your OpenAI API key to generate the procedural note.')
     else:
         st.warning('Please provide both subjective and objective information.')
 
-# Add information about the app
+# Sidebar Info
 st.sidebar.title('About')
-st.sidebar.info('This enhanced app uses AI to generate comprehensive medical Procedural notes, including differential diagnoses and detailed treatment plans with prescriptions. You can paste a ChatGPT conversation to automatically extract subjective and objective information, or input it manually.')
+st.sidebar.info('This AI-powered app generates detailed procedural notes, including diagnoses, differential diagnoses, treatment plans, and post-operative instructions. Paste a conversation to automatically extract subjective and objective information or input them manually.')
 
-# Add a note about the API key
 st.sidebar.title('API Key')
-st.sidebar.info('This app requires an OpenAI API key to function. You\'ll be prompted to enter it when you start the app. Your API key is not stored permanently and will need to be re-entered each time you restart the app.')
+st.sidebar.info('This app requires an OpenAI API key to function. Enter it when prompted. The key is not stored permanently and must be re-entered after restarting the app.')
 
-# Add a disclaimer
 st.sidebar.title('Disclaimer')
-st.sidebar.warning('This app is for educational and demonstration purposes only. The generated procedural notes, including diagnoses and prescriptions, should not be used for actual medical decision-making without review and approval by a licensed healthcare professional.')
+st.sidebar.warning('This app is for educational purposes only. The generated notes should not be used for actual medical decision-making without review by a licensed healthcare provider.')
