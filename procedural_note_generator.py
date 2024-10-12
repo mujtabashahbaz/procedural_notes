@@ -25,7 +25,7 @@ def extract_info(conversation):
     
     return subjective, objective
 
-def generate_soap_note(subjective, objective):
+def generate_procedural_note(subjective, objective):
     if not openai_installed:
         return "Error: OpenAI library is not installed. Please install it to use this feature."
 
@@ -34,7 +34,7 @@ def generate_soap_note(subjective, objective):
         return "Error: Please enter a valid OpenAI API key to use this feature."
 
     client = OpenAI(api_key=api_key)
-    prompt = f"""Generate a comprehensive medical SOAP note based on the following information:
+    prompt = f"""Generate a comprehensive procedural note based on the following information:
 
 Subjective: {subjective}
 
@@ -67,7 +67,7 @@ Ensure the note is detailed, professional, and follows standard medical terminol
         return f"Error: {str(e)}"
 
 # Streamlit app
-st.title('Enhanced AI SOAP Note Generator')
+st.title('Enhanced AI Procedural Note Generator')
 
 if not openai_installed:
     st.warning("The OpenAI library is not installed. Some features of this app may not work.")
@@ -99,21 +99,21 @@ st.subheader('Objective')
 objective = st.text_area("Objective information:", value=st.session_state.get('objective', ''), height=100)
 
 # Generate button
-if st.button('Generate Enhanced SOAP Note'):
+if st.button('Generate Enhanced Procedural Note'):
     if subjective and objective:
         if api_key:
-            with st.spinner('Generating Enhanced SOAP Note...'):
-                soap_note = generate_soap_note(subjective, objective)
-            st.subheader('Generated Enhanced SOAP Note')
-            st.text_area("", value=soap_note, height=500)
+            with st.spinner('Generating Enhanced Procedural Note...'):
+                procedural_note = generate_procedural_note(subjective, objective)
+            st.subheader('Generated Enhanced Procedural Note')
+            st.text_area("", value=procedural_note, height=500)
         else:
-            st.warning('Please enter your OpenAI API key to generate the SOAP note.')
+            st.warning('Please enter your OpenAI API key to generate the Procedural note.')
     else:
         st.warning('Please provide both subjective and objective information.')
 
 # Add information about the app
 st.sidebar.title('About')
-st.sidebar.info('This enhanced app uses AI to generate comprehensive medical SOAP notes, including differential diagnoses and detailed treatment plans with prescriptions. You can paste a ChatGPT conversation to automatically extract subjective and objective information, or input it manually.')
+st.sidebar.info('This enhanced app uses AI to generate comprehensive medical Procedural notes, including differential diagnoses and detailed treatment plans with prescriptions. You can paste a ChatGPT conversation to automatically extract subjective and objective information, or input it manually.')
 
 # Add a note about the API key
 st.sidebar.title('API Key')
@@ -121,4 +121,4 @@ st.sidebar.info('This app requires an OpenAI API key to function. You\'ll be pro
 
 # Add a disclaimer
 st.sidebar.title('Disclaimer')
-st.sidebar.warning('This app is for educational and demonstration purposes only. The generated SOAP notes, including diagnoses and prescriptions, should not be used for actual medical decision-making without review and approval by a licensed healthcare professional.')
+st.sidebar.warning('This app is for educational and demonstration purposes only. The generated procedural notes, including diagnoses and prescriptions, should not be used for actual medical decision-making without review and approval by a licensed healthcare professional.')
