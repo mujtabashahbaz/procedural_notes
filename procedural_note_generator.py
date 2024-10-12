@@ -61,14 +61,13 @@ Please provide the following sections:
 Ensure that the note is comprehensive, professional, and formatted using appropriate medical terminology."""
 
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.Completion.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a medical professional tasked with generating detailed procedural notes for healthcare professionals."},
-                {"role": "user", "content": prompt}
-            ]
+            prompt=prompt,
+            max_tokens=1500,
+            temperature=0.7
         )
-        return response['choices'][0]['message']['content'].strip()
+        return response['choices'][0]['text'].strip()
     except Exception as e:
         return f"Error: {str(e)}"
 
