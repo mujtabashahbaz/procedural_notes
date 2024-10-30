@@ -3,7 +3,7 @@ import re
 
 # Check if openai is installed
 try:
-    from openai import OpenAI
+    import openai
     openai_installed = True
 except ImportError:
     openai_installed = False
@@ -33,7 +33,7 @@ def generate_procedural_note(subjective, objective):
     if not api_key:
         return "Error: Please enter a valid OpenAI API key to use this feature."
 
-    client = OpenAI(api_key=api_key)
+    openai.api_key = api_key
     prompt = f"""Generate a comprehensive procedural note based on the following information:
 
 Subjective: {subjective}
@@ -58,7 +58,7 @@ Please provide the following sections:
 Ensure the note is detailed, professional, and follows standard medical terminology and format."""
 
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are an experienced medical professional generating comprehensive procedural notes."},
@@ -70,7 +70,7 @@ Ensure the note is detailed, professional, and follows standard medical terminol
         return f"Error: {str(e)}"
 
 # Streamlit app
-st.title('Enhanced AI Procedural Note Generator')
+st.title('AI-Powered Procedural Note Generator for Healthcare Professionals')
 
 if not openai_installed:
     st.warning("The OpenAI library is not installed. Some features of this app may not work.")
@@ -102,12 +102,12 @@ st.subheader('Objective')
 objective = st.text_area("Objective information:", value=st.session_state.get('objective', ''), height=100)
 
 # Generate button
-if st.button('Generate Enhanced Procedural Note'):
+if st.button('Generate Procedural Note'):
     if subjective and objective:
         if api_key:
-            with st.spinner('Generating Enhanced Procedural Note...'):
+            with st.spinner('Generating Procedural Note...'):
                 procedural_note = generate_procedural_note(subjective, objective)
-            st.subheader('Generated Enhanced Procedural Note')
+            st.subheader('Generated Procedural Note')
             st.text_area("", value=procedural_note, height=500)
         else:
             st.warning('Please enter your OpenAI API key to generate the procedural note.')
@@ -116,7 +116,7 @@ if st.button('Generate Enhanced Procedural Note'):
 
 # Add information about the app
 st.sidebar.title('About')
-st.sidebar.info('This enhanced app uses AI to generate comprehensive medical procedural notes, including detailed steps of the procedure and post-procedure care plans. You can paste a ChatGPT conversation to automatically extract subjective and objective information, or input it manually.')
+st.sidebar.info('This app uses AI to generate comprehensive procedural notes for healthcare professionals. You can paste a ChatGPT conversation to automatically extract subjective and objective information or input it manually.')
 
 # Add a note about the API key
 st.sidebar.title('API Key')
