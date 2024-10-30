@@ -14,18 +14,7 @@ def get_openai_api_key():
         st.session_state['openai_api_key'] = st.text_input("Enter your OpenAI API key:", type="password")
     return st.session_state['openai_api_key']
 
-def extract_info(conversation):
-    # Extract Subjective information
-    subjective_match = re.search(r'Subjective:(.*?)(?:Objective:|$)', conversation, re.DOTALL | re.IGNORECASE)
-    subjective = subjective_match.group(1).strip() if subjective_match else ""
-    
-    # Extract Objective information
-    objective_match = re.search(r'Objective:(.*?)(?:Assessment:|$)', conversation, re.DOTALL | re.IGNORECASE)
-    objective = objective_match.group(1).strip() if objective_match else ""
-    
-    return subjective, objective
-
-def generate_procedural_note(subjective, objective):
+def generate_procedural_note(patient_info, procedure_details):
     if not openai_installed:
         return "Error: OpenAI library is not installed. Please install it to use this feature."
 
@@ -36,9 +25,9 @@ def generate_procedural_note(subjective, objective):
     openai.api_key = api_key
     prompt = f"""Generate a comprehensive procedural note based on the following information:
 
-Subjective: {subjective}
+Patient Information: {patient_info}
 
-Objective: {objective}
+Procedure Details: {procedure_details}
 
 Please provide the following sections:
 1. Procedure performed:
@@ -81,42 +70,27 @@ if not openai_installed:
 # API Key input
 api_key = get_openai_api_key()
 
-# ChatGPT conversation input
-st.subheader('ChatGPT Conversation')
-conversation = st.text_area("Paste your ChatGPT conversation here:", height=200)
-
-# Extract button
-if st.button('Extract Subjective and Objective'):
-    if conversation:
-        subjective, objective = extract_info(conversation)
-        st.session_state['subjective'] = subjective
-        st.session_state['objective'] = objective
-    else:
-        st.warning('Please paste a conversation before extracting.')
-
-# Subjective and Objective inputs
-st.subheader('Subjective')
-subjective = st.text_area("Subjective information:", value=st.session_state.get('subjective', ''), height=100)
-
-st.subheader('Objective')
-objective = st.text_area("Objective information:", value=st.session_state.get('objective', ''), height=100)
+# Patient and procedure information input
+st.subheader('Patient and Procedure Information')
+patient_info = st.text_area("Patient Information (e.g., demographics, medical history, presenting symptoms):", height=100)
+procedure_details = st.text_area("Procedure Details (e.g., procedure type, instruments, anesthesia, specific techniques):", height=100)
 
 # Generate button
 if st.button('Generate Procedural Note'):
-    if subjective and objective:
+    if patient_info and procedure_details:
         if api_key:
             with st.spinner('Generating Procedural Note...'):
-                procedural_note = generate_procedural_note(subjective, objective)
+                procedural_note = generate_procedural_note(patient_info, procedure_details)
             st.subheader('Generated Procedural Note')
             st.text_area("", value=procedural_note, height=500)
         else:
             st.warning('Please enter your OpenAI API key to generate the procedural note.')
     else:
-        st.warning('Please provide both subjective and objective information.')
+        st.warning('Please provide both patient information and procedure details.')
 
 # Add information about the app
 st.sidebar.title('About')
-st.sidebar.info('This app uses AI to generate comprehensive procedural notes for healthcare professionals. You can paste a ChatGPT conversation to automatically extract subjective and objective information or input it manually.')
+st.sidebar.info('This app uses AI to generate comprehensive procedural notes for healthcare professionals. Provide brief patient and procedure details to get a structured, detailed note.')
 
 # Add a note about the API key
 st.sidebar.title('API Key')
